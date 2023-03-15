@@ -32,6 +32,10 @@
 //    ...
 //  ]
 
+$("#start").on("click", function(){
+    $("#startingScreen").hide();
+})
+
 let categories = [];
 
 
