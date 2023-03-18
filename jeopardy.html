@@ -17,19 +17,18 @@
     
       <div class="card text-bg-dark d-flex flex-column" id="startingScreen">
         <img src="https://ntvb.tmsimg.com/assets/p184056_b_h8_ar.jpg?w=1280&h=720" class="card-img img-fluid" alt="...">
-        <div class="card-img-overlay d-grid gap-2 col-6 mx-auto">
+        <div class="card-img-overlay">
             <button id="start" class="btn btn-lg btn-primary mt-auto">Start!</button>
         </div>
       </div>
-<!-- 
-  <div id="spin-container">
-    <i class="fa fa-spin fa-spinner"></i>
-  </div> -->
 
-  <table id="jeopardy">
-    <thead></thead>
-    <tbody></tbody>
+  <table id="jeopardy" class="table table-bordered table-responsive h-100 w-100 d-block d-md-table">
+    <thead id="categories"></thead>
+    <tbody id="clues"></tbody>
   </table>
+<hr>
+<button id="restart" class="btn btn-lg btn-primary mt-auto">Restart</button>
+
 
 <script src="https://unpkg.com/jquery"></script>
 <script src="https://unpkg.com/axios/dist/axios.js"></script>

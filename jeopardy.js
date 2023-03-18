@@ -30,21 +30,22 @@
 //      ],
 //    },
 //    ...
-//  ]
-
-$("#start").on("click", function(){
-    $("#startingScreen").hide();
-})
-
+//  ].
+const numCats = 6;
+const numClues = 5
+const catIds = [];
 let categories = [];
-
-
 /** Get NUM_CATEGORIES random category from API.
  *
  * Returns array of category ids
  */
 
-function getCategoryIds() {
+function getCategoryIds(numCats) { 
+    for(let i=0; i <= numCats; i++) {
+        let randomCats = Math.floor(Math.random()* 28162);
+       catIds.push(randomCats);    
+    }
+  return catIds;
 }
 
 /** Return object with data about a category:
@@ -59,19 +60,62 @@ function getCategoryIds() {
  *   ]
  */
 
-function getCategory(catId) {
-}
+async function getCategory(catId) {
+    
+       const response = await axios.get("http://jservice.io/api/category",{
+            params:{
+                id:catId
+            }
+        });
+       let allClues = response.data.clues;
+       let randClues= _.sampleSize(allClues, numClues);
+       let clues = randClues.map(c => ({
+        question: c.question,
+        answer: c.answer,
+        showing: null,
+       }));
 
-/** Fill the HTML table#jeopardy with the categories & cells for questions.
- *
- * - The <thead> should be filled w/a <tr>, and a <td> for each category
- * - The <tbody> should be filled w/NUM_QUESTIONS_PER_CAT <tr>s,
- *   each with a question for each category in a <td>
- *   (initally, just show a "?" where the question/answer would go.)
- */
+       return {title: response.data.title, clues};
+       }
+       
+      
+    
+    
+//First thought on build table but it was difficult to add in the clues and categories
 
+// function buildTable(){
+//     $("#categories").append(`<tr id="catRow"></tr>`);
+//     $("#catRow").addClass("row flex");
+//     for (let i=1; i<=6; i++){
+//     $("#catRow").append( `<th class="col-2 text-center" id = "categoryRow">category</th>` );
+//     }
+//     for (let j=1; j<=5; j++){
+//         $("#clues").append(`<tr class="row" id="clueRow${j}"></tr>`);
+//         for(let k=1; k<=6; k++){
+//             $(`#clueRow${j}`).append( `<td class="col-2 text-center" id="clue">?</td>` );
+//         }
+//     }
+// }
+// I found it easier to fill and build simultaneously.
 async function fillTable() {
-}
+   //category row
+    $("#jeopardy thead").empty();
+    let $tr = $("<tr>");
+    for (let i= 0; i < numCats; i++) {
+      $tr.append($("<th>").text(categories[i].title));
+    }
+    $("#jeopardy thead").append($tr);
+  
+    //clue/answer section
+    $("#jeopardy tbody").empty();
+    for (let clueIdx = 0; clueIdx < numClues; clueIdx++) {
+      let $tr = $("<tr>");
+      for (let catIdx = 0; catIdx < numCats; catIdx++) {
+        $tr.append($("<td>").attr("id", `${catIdx}-${clueIdx}`).text("?"));
+      }
+      $("#jeopardy tbody").append($tr);
+    }
+  }
 
 /** Handle clicking on a clue: show the question or answer.
  *
@@ -82,20 +126,27 @@ async function fillTable() {
  * */
 
 function handleClick(evt) {
+  let id = evt.target.id;
+  let [catId, clueId] = id.split("-");
+  let clue = categories[catId].clues[clueId];
+
+  let msg;
+
+  if (!clue.showing) {
+    msg = clue.question;
+    clue.showing = "question";
+  } else if (clue.showing === "question") {
+    msg = clue.answer;
+    clue.showing = "answer";
+  } else {
+    return
+  }
+  $(`#${catId}-${clueId}`).html(msg);
+
 }
 
-/** Wipe the current Jeopardy board, show the loading spinner,
- * and update the button used to fetch data.
- */
 
-function showLoadingView() {
 
-}
-
-/** Remove the loading spinner and update the button used to fetch data. */
-
-function hideLoadingView() {
-}
 
 /** Start game:
  *
@@ -105,12 +156,22 @@ function hideLoadingView() {
  * */
 
 async function setupAndStart() {
+  let catIds = await getCategoryIds(numCats);
+
+  categories = [];
+
+  for (let catId of catIds) {
+    categories.push(await getCategory(catId));
+  }
+
+  fillTable();
 }
+$("#start").on("click", function(){
+  $("#startingScreen").hide(3000, ()=>{
+      $("#startingScreen").addClass("d-none");
+  });
+  setupAndStart()
+  $("#jeopardy").on("click", "td", handleClick);
+});
 
-/** On click of start / restart button, set up game. */
-
-// TODO
-
-/** On page load, add event handler for clicking clues */
-
-// TODO
+$("#restart").on("click", setupAndStart);
